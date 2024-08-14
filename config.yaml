@@ -1,0 +1,13 @@
+# Configuration for cache service
+cache:
+  # Interval for the cache cleaner to run (in seconds)
+  cleaner_interval: 60
+
+  # Default Time-To-Live for cache entries (in seconds)
+  ttl: 300
+
+  # Maximum number of entries in the LRU cache
+  max_entries: 100
+
+  # Memory limit for the cache (in bytes)
+  memory_limit: 1024
