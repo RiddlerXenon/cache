@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"container/list"
 	"fmt"
 	"runtime"
 	"sync"
@@ -9,13 +8,14 @@ import (
 )
 
 type Item struct {
-	Value string
-	TTL   int64
+	Value      string
+	TTL        int64
+	Next, Prev *Item
 }
 
 type Cache struct {
 	Items   map[string]Item
-	LRUList *list.List
+	LRUList *ItemList
 	Cleaner *cleaner
 	Config  *config
 	Mutex   sync.Mutex
@@ -33,7 +33,7 @@ func New() (*Cache, error) {
 
 	c := &Cache{
 		Items:   make(map[string]Item),
-		LRUList: list.New(),
+		LRUList: NewItemList(),
 		Config:  cfg,
 		Cleaner: cln,
 	}
@@ -101,6 +101,7 @@ func (c *Cache) DeleteExpired() {
 
 	for key, item := range c.Items {
 		if now >= item.TTL {
+			c.LRUList.Remove(item)
 			delete(c.Items, key)
 		}
 	}
