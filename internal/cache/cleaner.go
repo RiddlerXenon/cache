@@ -11,7 +11,7 @@ func closeCleaner(c *Cache) {
 }
 
 func (cln *cleaner) Run(c *Cache) {
-	cleaner := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Minute)
 	for {
 		select {
 		case <-ticker.C:

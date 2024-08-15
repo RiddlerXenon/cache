@@ -3,6 +3,8 @@ package cache
 import (
 	"fmt"
 	"os"
+
+	"github.com/go-yaml/yaml"
 )
 
 type cacheConfig struct {
@@ -23,7 +25,7 @@ func readCacheConfig() (*config, error) {
 		return nil, err
 	}
 
-	var cfg config
+	cfg := new(config)
 
 	err = yaml.Unmarshal(file, &cfg)
 	if err != nil {

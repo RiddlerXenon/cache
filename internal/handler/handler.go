@@ -47,7 +47,7 @@ func SetHandler(c *cache.Cache) http.HandlerFunc {
 				return
 			}
 
-			if request.Value != nil {
+			if request.Value != "" {
 				if request.TTL > 0 {
 					c.Set(key, request.Value, request.TTL)
 				} else {

@@ -1,11 +1,11 @@
 package cache
 
 type ItemList struct {
-	Root *Item
+	Root Item
 	Len  int
 }
 
-func (l *ItemList) Init() {
+func (l *ItemList) Init() *ItemList {
 	l.Root.Next = &l.Root
 	l.Root.Prev = &l.Root
 	l.Len = 0
@@ -50,7 +50,7 @@ func (l *ItemList) MoveToFront(i *Item) {
 
 func (l *ItemList) insert(i, at *Item) *Item {
 	i.Prev = at
-	i.Next = at.next
+	i.Next = at.Next
 	i.Prev.Next = i
 	i.Next.Prev = i
 	l.Len++

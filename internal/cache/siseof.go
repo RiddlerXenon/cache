@@ -17,7 +17,7 @@ func sizeOfMap(m map[string]Item) int {
 	var size int
 	for key, item := range m {
 		size += sizeOfString(key)
-		size += sizeOfString(i.Value) + SizeOfInt64
+		size += sizeOfString(item.Value) + sizeOfInt64
 	}
 	size += sizeOfPtr
 	return size

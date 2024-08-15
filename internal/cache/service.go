@@ -8,6 +8,7 @@ import (
 )
 
 type Item struct {
+	Key        string
 	Value      string
 	TTL        int64
 	Next, Prev *Item
@@ -46,50 +47,51 @@ func New() (*Cache, error) {
 func (c *Cache) Set(key string, val string, ttl int64) {
 	if ttl == 0 {
 		now := time.Now()
-		ttl = now.Add(time.Second * c.config.cacheConfig.TTL)
+		ttl = now.Add(time.Second * time.Duration(c.Config.Cache.TTL)).UnixNano()
 	}
 
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 
 	if item, exists := c.Items[key]; exists {
-		c.Items[key].Value = val
-		c.Items[key].TTL = ttl
-		c.LRUList.MoveToFront(item)
+		item.Value = val
+		item.TTL = ttl
+		c.LRUList.MoveToFront(&item)
 		return
 	} else {
 		item := c.LRUList.PushFront(
 			&Item{
+				Key:   key,
 				Value: val,
 				TTL:   ttl,
 			},
-		).Value
-		c.Items[key] = item
+		)
+		c.Items[key] = *item
 	}
 
-	if len(c.LRUList) == c.config.cacheConfig.Maxentries || sizeOfMap(c.Items) >= c.config.cacheConfig.MemoryLimit {
+	if c.LRUList.Len == c.Config.Cache.MaxEntries || sizeOfMap(c.Items) >= c.Config.Cache.MemoryLimit {
 		oldest := c.LRUList.Back()
 		if oldest != nil {
 			c.LRUList.Remove(oldest)
-			delete(c.Items, oldest)
+			delete(c.Items, oldest.Key)
 		}
 	}
 }
 
-func (c *Cache) Get(key string) (interface{}, error) {
+func (c *Cache) Get(key string) (string, error) {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 
 	item, exists := c.Items[key]
 	if !exists {
-		return nil, fmt.Errorf("key %s not found", key)
+		return "", fmt.Errorf("key %s not found", key)
 	}
 
-	if item.Value == nil {
-		return nil, fmt.Errorf("value for key %s is empty", key)
+	if item.Value == "" {
+		return "", fmt.Errorf("value for key %s is empty", key)
 	}
 
-	c.LRUList.MoveToFront(item)
+	c.LRUList.MoveToFront(&item)
 	return item.Value, nil
 }
 
@@ -101,7 +103,7 @@ func (c *Cache) DeleteExpired() {
 
 	for key, item := range c.Items {
 		if now >= item.TTL {
-			c.LRUList.Remove(item)
+			c.LRUList.Remove(&item)
 			delete(c.Items, key)
 		}
 	}
