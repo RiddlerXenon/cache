@@ -34,6 +34,7 @@ func main() {
 	http.HandleFunc("/api/set", handler.SetHandler(c))
 	// http.HandleFunc("/api/getCache", handler.GetCacheHandler(c))
 
+	zap.S().Info("Server starting at http://127.0.0.1:8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		zap.S().Fatal(err)
 	}

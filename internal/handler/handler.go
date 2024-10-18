@@ -9,28 +9,18 @@ import (
 	"go.uber.org/zap"
 )
 
-func parseKey(u *url.URL) (string, error) {
-	url, err := u.Parse("/")
-	if err != nil {
-		return "", err
-	}
-
-	params := url.Query()
+func parseKey(u *url.URL) string {
+	params := u.Query()
 	key := params.Get("key")
 
-	return key, nil
+	return key
 }
 
 func SetHandler(c *cache.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			key, err := parseKey(r.URL)
-			if err != nil {
-				http.Error(w, "Unable to parse URL", http.StatusBadRequest)
-				zap.S().Error(err)
-				return
-			}
+			key := parseKey(r.URL)
 			if key == "" {
 				http.Error(w, "Key is empty", http.StatusBadRequest)
 				zap.S().Errorf("Key is empty")
@@ -39,7 +29,7 @@ func SetHandler(c *cache.Cache) http.HandlerFunc {
 
 			decoder := json.NewDecoder(r.Body)
 			var request Request
-			err = decoder.Decode(&request)
+			err := decoder.Decode(&request)
 
 			if err != nil {
 				http.Error(w, "Bad request", http.StatusBadRequest)
@@ -53,6 +43,7 @@ func SetHandler(c *cache.Cache) http.HandlerFunc {
 				} else {
 					c.Set(key, request.Value, 0)
 				}
+				return
 			}
 
 			http.Error(w, "Value is empty", http.StatusBadRequest)
@@ -68,12 +59,7 @@ func GetHandler(c *cache.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			key, err := parseKey(r.URL)
-			if err != nil {
-				http.Error(w, "Unable to parse URL", http.StatusBadRequest)
-				zap.S().Error(err)
-				return
-			}
+			key := parseKey(r.URL)
 			if key == "" {
 				http.Error(w, "Key is empty", http.StatusBadRequest)
 				zap.S().Errorf("Key is empty")
