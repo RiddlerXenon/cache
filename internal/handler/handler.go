@@ -98,15 +98,3 @@ func GetHandler(c *cache.Cache) http.HandlerFunc {
 		}
 	}
 }
-
-// func GetCacheHandler(*cache.Cache) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		switch r.Method {
-// 		case htt.MethodGet:
-// 			return
-// 		default:
-// 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 			zap.S().Errorf("Method not allowed")
-// 		}
-// 	}
-// }

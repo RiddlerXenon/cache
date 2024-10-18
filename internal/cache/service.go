@@ -39,6 +39,7 @@ func New() (*Cache, error) {
 		Cleaner: cln,
 	}
 
+	go cln.Run(c)
 	runtime.SetFinalizer(c, closeCleaner)
 
 	return c, nil
@@ -70,6 +71,8 @@ func (c *Cache) Set(key string, val string, ttl int64) {
 	}
 
 	if c.LRUList.Len == c.Config.Cache.MaxEntries || sizeOfMap(c.Items) >= c.Config.Cache.MemoryLimit {
+		c.DeleteExpired()
+
 		oldest := c.LRUList.Back()
 		if oldest != nil {
 			c.LRUList.Remove(oldest)
